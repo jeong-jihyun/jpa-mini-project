@@ -2,21 +2,21 @@ package com.herojoon.jpaproject.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 //import com.sun.istack.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.herojoon.jpaproject.entity.Team.Team;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @SuperBuilder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter
 @Getter
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity  // 객체와 테이블 매핑
 @Table(name = "MEMBER")  // index 없음 (기본 테이블 생성)
+@ToString(of = {"id","name","email","nickname","age","birthday"})
 public class Member {
     @Id  // Primary Key 지정
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,4 +38,8 @@ public class Member {
 
     @Column(name = "BIRTHDAY")
     private Date birthday;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="team_id")
+    private Team team;
 }
