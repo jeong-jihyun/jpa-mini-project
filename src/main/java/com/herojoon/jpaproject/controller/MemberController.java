@@ -1,5 +1,6 @@
 package com.herojoon.jpaproject.controller;
 
+import com.herojoon.jpaproject.constraint.Gender;
 import com.herojoon.jpaproject.entity.Member;
 import com.herojoon.jpaproject.service.MemberService;
 import io.swagger.annotations.Api;
@@ -40,6 +41,7 @@ public class MemberController {
                 .nickname("heroble")
                 .age(10)
                 .birthday(date)
+                .sex(Gender.MAN)
                 .build();
         Member savedMember = memberService.createMember(member);
         return new ResponseEntity<>(savedMember, HttpStatus.OK);

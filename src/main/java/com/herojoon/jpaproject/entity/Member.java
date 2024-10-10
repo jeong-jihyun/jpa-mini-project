@@ -2,6 +2,8 @@ package com.herojoon.jpaproject.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 //import com.sun.istack.NotNull;
+import com.herojoon.jpaproject.constraint.Gender;
+import com.herojoon.jpaproject.converter.GenderConvert;
 import com.herojoon.jpaproject.entity.Team.Team;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -42,4 +44,8 @@ public class Member {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="team_id")
     private Team team;
+
+    @Column(name = "SEX")
+    @Convert(converter = GenderConvert.class)
+    private Gender sex;
 }
