@@ -1,7 +1,9 @@
 package com.herojoon.jpaproject.service;
 
 import com.herojoon.jpaproject.entity.CapiIncrWithConsDiscInfoJPO;
+import com.herojoon.jpaproject.entity.DiviDiscInfoJPO;
 import com.herojoon.jpaproject.repository.CapiIncrWithConsDiscInfoRepository;
+import com.herojoon.jpaproject.repository.DiviDiscInfoRepository;
 import com.herojoon.jpaproject.util.BatchUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +26,14 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class DiscInfoService {
     private final CapiIncrWithConsDiscInfoRepository capiIncrWithConsDiscInfoRepository;
+    private final DiviDiscInfoRepository diviDiscInfoRepository;
 
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
@@ -72,7 +76,7 @@ public class DiscInfoService {
                 if (totalCount == (int) capiIncrWithConsDiscInfoRepository.count()) {
                     break;
                 }else{
-                    this.DiscInfoProcessResponse(response.toString());
+                    this.CapiIncrWithConsDiscInfoProcessResponse(response.toString());
                 }
             } catch (IOException ex) {
                 log.error("Error occurred while calling API", ex);
@@ -87,13 +91,136 @@ public class DiscInfoService {
     }
 
     /**
-     * API 응답 처리
+     * 금융위원회_공시정보 (배당공시정보조회)
+     * @throws IOException
+     */
+    public void DiviDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getDiviDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("DiviDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) diviDiscInfoRepository.count()) {
+                    break;
+                }else{
+                    this.DiviDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 금융위원회_공시정보 (배당공시정보조회) - API 응답 처리
      * @param responseBody responseBody
      * @throws ParserConfigurationException ParserConfigurationException
      * @throws SAXException SAXException
      * @throws IOException IOException
      */
-    private void DiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+    private void DiviDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException{
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                // DiscInfoJPO의 값을 매칭하여 아래 코드를 작성하세요.
+                diviDiscInfoRepository.save(DiviDiscInfoJPO.builder()
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .bpvtrCashDvdnTndnCtt(BatchUtil.getTagValue("bpvtrCashDvdnTndnCtt", element))
+                        .bpvtrCashTdvdAmt(BatchUtil.getTagValue("bpvtrCashTdvdAmt", element))
+                        .bpvtrIdvCrtmNpf(BatchUtil.getTagValue("bpvtrIdvCrtmNpf", element))
+                        .bpvtrOnskCashDvdnAmt(BatchUtil.getTagValue("bpvtrOnskCashDvdnAmt", element))
+                        .bpvtrOnskCashDvdnBnfRt(BatchUtil.getTagValue("bpvtrOnskCashDvdnBnfRt", element))
+                        .bpvtrOnskStckDvdnAmt(BatchUtil.getTagValue("bpvtrOnskStckDvdnAmt", element))
+                        .bpvtrOnskStckDvdnBnfRt(BatchUtil.getTagValue("bpvtrOnskStckDvdnBnfRt", element))
+                        .bpvtrParPrc(BatchUtil.getTagValue("bpvtrParPrc", element))
+                        .bpvtrPfstCashDvdnAmt(BatchUtil.getTagValue("bpvtrPfstCashDvdnAmt", element))
+                        .bpvtrPfstCashDvdnBnfRt(BatchUtil.getTagValue("bpvtrPfstCashDvdnBnfRt", element))
+                        .bpvtrPfstStckDvdnAmt(BatchUtil.getTagValue("bpvtrPfstStckDvdnAmt", element))
+                        .bpvtrPfstStckDvdnBnfRt(BatchUtil.getTagValue("bpvtrPfstStckDvdnBnfRt", element))
+                        .bpvtrPstcNpf(BatchUtil.getTagValue("bpvtrPstcNpf", element))
+                        .bpvtrStckTdvdAmt(BatchUtil.getTagValue("bpvtrStckTdvdAmt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .crtmCashDvdnTndnCtt(BatchUtil.getTagValue("crtmCashDvdnTndnCtt", element))
+                        .crtmCashTdvdAmt(BatchUtil.getTagValue("crtmCashTdvdAmt", element))
+                        .crtmIdvCrtmNpf(BatchUtil.getTagValue("crtmIdvCrtmNpf", element))
+                        .crtmOnskCashDvdnAmt(BatchUtil.getTagValue("crtmOnskCashDvdnAmt", element))
+                        .crtmOnskCashDvdnBnfRt(BatchUtil.getTagValue("crtmOnskCashDvdnBnfRt", element))
+                        .crtmOnskStckDvdnAmt(BatchUtil.getTagValue("crtmOnskStckDvdnAmt", element))
+                        .crtmOnskStckDvdnBnfRt(BatchUtil.getTagValue("crtmOnskStckDvdnBnfRt", element))
+                        .crtmParPrc(BatchUtil.getTagValue("crtmParPrc", element))
+                        .crtmPfstCashDvdnAmt(BatchUtil.getTagValue("crtmPfstCashDvdnAmt", element))
+                        .crtmPfstCashDvdnBnfRt(BatchUtil.getTagValue("crtmPfstCashDvdnBnfRt", element))
+                        .crtmPfstStckDvdnAmt(BatchUtil.getTagValue("crtmPfstStckDvdnAmt", element))
+                        .crtmPfstStckDvdnBnfRt(BatchUtil.getTagValue("crtmPfstStckDvdnBnfRt", element))
+                        .crtmPstcNpf(BatchUtil.getTagValue("crtmPstcNpf", element))
+                        .crtmStckTdvdAmt(BatchUtil.getTagValue("crtmStckTdvdAmt", element))
+                        .enpCrtmNpf(BatchUtil.getTagValue("enpCrtmNpf", element))
+                        .fnclCrtmNpf(BatchUtil.getTagValue("fnclCrtmNpf", element))
+                        .pvtrCashDvdnTndnCtt(BatchUtil.getTagValue("pvtrCashDvdnTndnCtt", element))
+                        .pvtrCashTdvdAmt(BatchUtil.getTagValue("pvtrCashTdvdAmt", element))
+                        .pvtrCrtmNpf(BatchUtil.getTagValue("pvtrCrtmNpf", element))
+                        .pvtrIdvCrtmNpf(BatchUtil.getTagValue("pvtrIdvCrtmNpf", element))
+                        .pvtrOnskCashDvdnAmt(BatchUtil.getTagValue("pvtrOnskCashDvdnAmt", element))
+                        .pvtrOnskCashDvdnBnfRt(BatchUtil.getTagValue("pvtrOnskCashDvdnBnfRt", element))
+                        .pvtrOnskStckDvdnAmt(BatchUtil.getTagValue("pvtrOnskStckDvdnAmt", element))
+                        .pvtrOnskStckDvdnBnfRt(BatchUtil.getTagValue("pvtrOnskStckDvdnBnfRt", element))
+                        .pvtrParPrc(BatchUtil.getTagValue("pvtrParPrc", element))
+                        .pvtrPfstCashDvdnAmt(BatchUtil.getTagValue("pvtrPfstCashDvdnAmt", element))
+                        .pvtrPfstCashDvdnBnfRt(BatchUtil.getTagValue("pvtrPfstCashDvdnBnfRt", element))
+                        .pvtrPfstStckDvdnAmt(BatchUtil.getTagValue("pvtrPfstStckDvdnAmt", element))
+                        .pvtrPfstStckDvdnBnfRt(BatchUtil.getTagValue("pvtrPfstStckDvdnBnfRt", element))
+                        .pvtrPstcNpf(BatchUtil.getTagValue("pvtrPstcNpf", element))
+                        .pvtrStckTdvdAmt(BatchUtil.getTagValue("pvtrStckTdvdAmt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .build()
+                );
+            } else {
+                log.info("Empty node found.");
+            }
+        }
+    }
+
+    /**
+     * 금융위원회_공시정보 (유상증자결정공시정보조회) - API 응답 처리
+     * @param responseBody responseBody
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException SAXException
+     * @throws IOException IOException
+     */
+    private void CapiIncrWithConsDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document document = builder.parse(new InputSource(new StringReader(responseBody)));

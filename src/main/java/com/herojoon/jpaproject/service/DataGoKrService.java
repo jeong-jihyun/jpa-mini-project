@@ -23,5 +23,8 @@ public class DataGoKrService {
 
         // 유상증자결정공시정보조회
         discInfoService.CapiIncrWithConsDiscInfo();
+
+        discInfoService.DiviDiscInfo();
+
     }
 }

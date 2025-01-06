@@ -5,7 +5,7 @@ spring:
       maximum-pool-size:4
     url: jdbc:postgresql://127.0.0.1:5432/postgres
     username: postgres  # H2 접속 시 입력할 username 정보 (원하는 것으로 입력)
-    password: Wjdrjsgh0717 # H2 접속 시 입력할 password 정보 (원하는 것으로 입력)
+    password: 50#w9>wEm!}*LUAJN%4Z>PUB0%9^W}Nefm^AUBajCABwgA}j6yY7t^>ak6Td5 # H2 접속 시 입력할 password 정보 (원하는 것으로 입력)
     driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
