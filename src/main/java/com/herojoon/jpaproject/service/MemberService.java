@@ -1,6 +1,6 @@
 package com.herojoon.jpaproject.service;
 
-import com.herojoon.jpaproject.entity.Member;
+import com.herojoon.jpaproject.entity.MemberJPO;
 import com.herojoon.jpaproject.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +20,12 @@ public class MemberService {
     /**
      * Member 생성
      *
-     * @param member
+     * @param memberJPO
      * @return
      */
-    public Member createMember(Member member) {
-        Member savedMember = memberRepository.save(member);  // JpaRepository에서 제공하는 save() 함수
-        return savedMember;
+    public MemberJPO createMember(MemberJPO memberJPO) {
+        MemberJPO savedMemberJPO = memberRepository.save(memberJPO);  // JpaRepository에서 제공하는 save() 함수
+        return savedMemberJPO;
     }
 
     /**
@@ -35,20 +35,20 @@ public class MemberService {
      * 만약 수정하려는 Entity Member 객체에 @Id 값이 존재하지 않으면 Insert 되기 때문에
      * 아래와 같이 업데이트 하고자 하는 Member가 존재하는지 체크하는 로직을 추가하였습니다.
      *
-     * @param member
+     * @param memberJPO
      * @return
      */
-    public Member updateMember(Member member) {
-        Member updatedMember = null;
+    public MemberJPO updateMember(MemberJPO memberJPO) {
+        MemberJPO updatedMemberJPO = null;
         try {
-            Member existMember = getMember(member.getId());
-            if (!ObjectUtils.isEmpty(existMember)) {
-                updatedMember = memberRepository.save(member);  // JpaRepository에서 제공하는 save() 함수
+            MemberJPO existMemberJPO = getMember(memberJPO.getId());
+            if (!ObjectUtils.isEmpty(existMemberJPO)) {
+                updatedMemberJPO = memberRepository.save(memberJPO);  // JpaRepository에서 제공하는 save() 함수
             }
         } catch (Exception e) {
             log.info("[Fail] e: " + e.toString());
         } finally {
-            return updatedMember;
+            return updatedMemberJPO;
         }
     }
 
@@ -57,7 +57,7 @@ public class MemberService {
      * 
      * @return
      */
-    public List<Member> getMembers() {
+    public List<MemberJPO> getMembers() {
         return memberRepository.findAll();  // JpaRepository에서 제공하는 findAll() 함수
     }
 
@@ -67,7 +67,7 @@ public class MemberService {
      * @param id
      * @return
      */
-    public Member getMember(Long id) {
+    public MemberJPO getMember(Long id) {
         return memberRepository.getById(id);  // JpaRepository에서 제공하는 getById() 함수
     }
 

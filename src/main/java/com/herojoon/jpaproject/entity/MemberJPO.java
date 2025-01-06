@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 //import com.sun.istack.NotNull;
 import com.herojoon.jpaproject.constraint.Gender;
 import com.herojoon.jpaproject.converter.GenderConvert;
-import com.herojoon.jpaproject.entity.Team.Team;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -18,8 +17,8 @@ import java.util.Date;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity  // 객체와 테이블 매핑
 @Table(name = "MEMBER")  // index 없음 (기본 테이블 생성)
-@ToString(of = {"id","name","email","nickname","age","birthday"})
-public class Member {
+@ToString(of = {"id", "name", "email", "nickname", "age", "birthday"})
+public class MemberJPO {
     @Id  // Primary Key 지정
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")  // 컬럼 지정
@@ -27,7 +26,6 @@ public class Member {
 
     @Column(name = "NAME")
     private String name;
-
 
     @Column(name = "email")
     private String email;
@@ -42,8 +40,8 @@ public class Member {
     private Date birthday;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="team_id")
-    private Team team;
+    @JoinColumn(name = "team_id")
+    private TeamJPO team;
 
     @Column(name = "SEX")
     @Convert(converter = GenderConvert.class)

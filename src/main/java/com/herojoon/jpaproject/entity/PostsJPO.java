@@ -13,7 +13,7 @@ import javax.persistence.*;
 @NoArgsConstructor // Lombok 어노테이션 : 기본 생성자 자동 추가
 @Entity  // 객체와 테이블 매핑
 @Table(name = "POSTS")  // index 없음 (기본 테이블 생성)
-public class Posts {
+public class PostsJPO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,7 @@ public class Posts {
     private String author;
 
     @Builder // 해당 클래스의 빌더 패턴 클래스 생성
-    public Posts(String title, String content, String author) {
+    public PostsJPO(String title, String content, String author) {
         this.title = title;
         this.content = content;
         this.author = author;

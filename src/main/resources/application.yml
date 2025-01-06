@@ -3,21 +3,39 @@ spring:
   datasource:
     hikari:
       maximum-pool-size:4
-    url: jdbc:postgresql://127.0.0.1:5432/restapi
-    username: jpauser  # H2 접속 시 입력할 username 정보 (원하는 것으로 입력)
-    password: 1q2w3e4r! # H2 접속 시 입력할 password 정보 (원하는 것으로 입력)
+    url: jdbc:postgresql://127.0.0.1:5432/postgres
+    username: postgres  # H2 접속 시 입력할 username 정보 (원하는 것으로 입력)
+    password: Wjdrjsgh0717 # H2 접속 시 입력할 password 정보 (원하는 것으로 입력)
     driver-class-name: org.postgresql.Driver
-  ## JPA Setting Info
   jpa:
+    show-sql: true
+    properties.hibernate:
+      format_sql: true
+      show_sql: true
+      use_sql_comment: true
+      highlight_sql: true
     hibernate:
-      ddl-auto: create  # option type: create, create-drop, update, validate, none
+      ddl-auto: update  # option type: create, create-drop, update, validate, none
       dialect: org.hibernate.dialect.PostgreSQL10Dialect
+      format_sql: true
     properties:
-      hibernate:
-        show_sql: true  # sql 쿼리를 보여줍니다.
-        format_sql: true  # sql query formatting
-        use_sql_comments: true  # sql 쿼리의 추가정보를 보여줍니다.
+      format_sql: true  # sql query formatting
+      use_sql_comments: true  # sql 쿼리의 추가정보를 보여줍니다.
     defer-datasource-initialization: true // 버전 이슈 때문에 추가
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+#logging:
+#  level:
+#    org:
+#      hibernate:
+#        SQL: debug
+#        type: trace
+#    com:
+#      example:
+#        demo: debug
+
+api:
+  service:
+    key: 3NKSD4pMiU1dAnSi9YfhhEcZyp1uL2gFUk8wq7Iy3Nex4lGzhRXbYlaKnxUDb2P5IxztSaDkmL14JHAbRONlDw%3D%3D
+    url: https://apis.data.go.kr

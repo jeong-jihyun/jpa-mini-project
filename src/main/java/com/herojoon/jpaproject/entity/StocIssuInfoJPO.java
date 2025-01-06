@@ -7,13 +7,16 @@ import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 
+/**
+ *주식발행내역조회 Entity
+ */
 @SuperBuilder
 @Setter
 @Getter
 @NoArgsConstructor
 @Entity
 @Table(name = "STOC_ISSU_INFO")
-public class StocIssuInfo {
+public class StocIssuInfoJPO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +27,7 @@ public class StocIssuInfo {
 
     @Column(name = "crno")
     private String crno;
-
+    /*보통주신주수*/
     @Column(name = "isinCd")
     private String isinCd;
 

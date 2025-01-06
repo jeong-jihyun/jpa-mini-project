@@ -1,6 +1,5 @@
-package com.herojoon.jpaproject.entity.Team;
+package com.herojoon.jpaproject.entity;
 
-import com.herojoon.jpaproject.entity.Member;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -11,8 +10,9 @@ import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "TEAM")
 @ToString(of = {"id", "name"})
-public class Team {
+public class TeamJPO {
     @Id
     @GeneratedValue
     @Column(name = "team_id")
@@ -21,5 +21,5 @@ public class Team {
     private String name;
 
     @OneToMany(mappedBy = "team")
-    List<Member> members = new ArrayList<>();
+    List<MemberJPO> members = new ArrayList<>();
 }
