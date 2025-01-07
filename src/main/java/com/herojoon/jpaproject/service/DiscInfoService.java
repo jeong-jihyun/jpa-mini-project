@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -34,65 +33,14 @@ import java.util.Objects;
 public class DiscInfoService {
     private final CapiIncrWithConsDiscInfoRepository capiIncrWithConsDiscInfoRepository;
     private final DiviDiscInfoRepository diviDiscInfoRepository;
-
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
     private String serviceKey;
     @Value("${api.service.url}")
     private String serviceUrl;
-
     /**
-     * 금융위원회_공시정보 (유상증자결정공시정보조회)
-     * 기준일자, 법인등록번호를 통하여 시설자금액, 운영자금액, 주식내용, 주식상환금액, 정관근거내용등을 조회하는 유상증자결정공시정보조회 기능
+     * 1.금융위원회_공시정보 (배당공시정보조회)
      * @throws IOException IOException
-     */
-    public void CapiIncrWithConsDiscInfo() throws IOException {
-        int pageNo = 1;
-        int numOfRows = 2000;
-        int totalCount = 0;
-
-        do {
-            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getCapiIncrWithConsDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
-            URL url = new URL(urlStr);
-
-            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", USER_AGENT);
-            con.setRequestProperty("CONTENT-TYPE", "text/xml");
-            con.setDoOutput(true);
-            con.setConnectTimeout(10000);
-            con.setReadTimeout(5000);
-
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
-                StringBuilder response = new StringBuilder();
-                String inputline;
-                while ((inputline = in.readLine()) != null) {
-                    response.append(inputline.trim());
-                }
-                log.info("CapiIncrWithConsDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
-                if (pageNo == 1) {
-                    totalCount = BatchUtil.getTotalCount(response.toString());
-                }
-                if (totalCount == (int) capiIncrWithConsDiscInfoRepository.count()) {
-                    break;
-                }else{
-                    this.CapiIncrWithConsDiscInfoProcessResponse(response.toString());
-                }
-            } catch (IOException ex) {
-                log.error("Error occurred while calling API", ex);
-                throw ex;
-            } catch (ParserConfigurationException | SAXException e) {
-                throw new RuntimeException(e);
-            } finally {
-                con.disconnect();
-            }
-            pageNo++;
-        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
-    }
-
-    /**
-     * 금융위원회_공시정보 (배당공시정보조회)
-     * @throws IOException
      */
     public void DiviDiscInfo() throws IOException {
         int pageNo = 1;
@@ -137,9 +85,8 @@ public class DiscInfoService {
             pageNo++;
         } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
     }
-
     /**
-     * 금융위원회_공시정보 (배당공시정보조회) - API 응답 처리
+     * 1.금융위원회_공시정보 (배당공시정보조회) - API 응답 처리
      * @param responseBody responseBody
      * @throws ParserConfigurationException ParserConfigurationException
      * @throws SAXException SAXException
@@ -212,9 +159,56 @@ public class DiscInfoService {
             }
         }
     }
-
     /**
-     * 금융위원회_공시정보 (유상증자결정공시정보조회) - API 응답 처리
+     * 2.금융위원회_공시정보 (유상증자결정공시정보조회)
+     * 기준일자, 법인등록번호를 통하여 시설자금액, 운영자금액, 주식내용, 주식상환금액, 정관근거내용등을 조회하는 유상증자결정공시정보조회 기능
+     * @throws IOException IOException
+     */
+    public void CapiIncrWithConsDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getCapiIncrWithConsDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("CapiIncrWithConsDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) capiIncrWithConsDiscInfoRepository.count()) {
+                    break;
+                }else{
+                    this.CapiIncrWithConsDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+    /**
+     * 2.금융위원회_공시정보 (유상증자결정공시정보조회) - API 응답 처리
      * @param responseBody responseBody
      * @throws ParserConfigurationException ParserConfigurationException
      * @throws SAXException SAXException
