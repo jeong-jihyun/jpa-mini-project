@@ -1,7 +1,7 @@
 package com.herojoon.jpaproject.service;
 
-import com.herojoon.jpaproject.entity.LockUpRetuInfoJPO;
-import com.herojoon.jpaproject.entity.StocIssuInfoJPO;
+import com.herojoon.jpaproject.entity.LockUpRetuInfoEntity;
+import com.herojoon.jpaproject.entity.StocIssuInfoEntity;
 import com.herojoon.jpaproject.repository.LockUpRetuInfoRepository;
 import com.herojoon.jpaproject.repository.StocIssuInfoRepository;
 import com.herojoon.jpaproject.util.BatchUtil;
@@ -107,7 +107,7 @@ public class StocInfoService {
             Node item = childList.item(i);
             if (item.getNodeType() == Node.ELEMENT_NODE) {
                 Element element = (Element) item;
-                stocIssuInfoRepository.save(StocIssuInfoJPO.builder()
+                stocIssuInfoRepository.save(StocIssuInfoEntity.builder()
                         .basDt(BatchUtil.getTagValue("basDt", element))
                         .crno(BatchUtil.getTagValue("crno", element))
                         .isinCd(BatchUtil.getTagValue("isinCd", element))
@@ -197,7 +197,7 @@ public class StocInfoService {
             Node item = childList.item(i);
             if (item.getNodeType() == Node.ELEMENT_NODE) {
                 Element element = (Element) item;
-                lockUpRetuInfoRepository.save(LockUpRetuInfoJPO.builder()
+                lockUpRetuInfoRepository.save(LockUpRetuInfoEntity.builder()
                         .afrsRsqtCnt(BatchUtil.getTagValue("afrsRsqtCnt", element))
                         .basDt(BatchUtil.getTagValue("basDt", element))
                         .crno(BatchUtil.getTagValue("crno", element))

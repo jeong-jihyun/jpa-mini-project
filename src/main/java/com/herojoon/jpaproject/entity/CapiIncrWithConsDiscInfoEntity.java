@@ -16,7 +16,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "CAPI_INCR_WITH_CONS_DISC_INFO")
-public class CapiIncrWithConsDiscInfoJPO {
+public class CapiIncrWithConsDiscInfoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

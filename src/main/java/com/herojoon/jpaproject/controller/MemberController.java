@@ -1,7 +1,7 @@
 package com.herojoon.jpaproject.controller;
 
 import com.herojoon.jpaproject.constraint.Gender;
-import com.herojoon.jpaproject.entity.MemberJPO;
+import com.herojoon.jpaproject.entity.MemberEntity;
 import com.herojoon.jpaproject.service.MemberService;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,10 +32,10 @@ public class MemberController {
      */
     @PostMapping("create")
     @Operation(summary = "회원생성", description = "회원정보 등록 처리")
-    public ResponseEntity<MemberJPO> createMember() throws ParseException {
+    public ResponseEntity<MemberEntity> createMember() throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Date date = format.parse("2011-12-03");
-        MemberJPO memberJPO = MemberJPO.builder()
+        MemberEntity memberJPO = MemberEntity.builder()
                 .name("herojoon")
                 .email("herojoon432@gmail.com")
                 .nickname("heroble")
@@ -43,7 +43,7 @@ public class MemberController {
                 .birthday(date)
                 .sex(Gender.MAN)
                 .build();
-        MemberJPO savedMemberJPO = memberService.createMember(memberJPO);
+        MemberEntity savedMemberJPO = memberService.createMember(memberJPO);
         return new ResponseEntity<>(savedMemberJPO, HttpStatus.OK);
     }
 
@@ -54,10 +54,10 @@ public class MemberController {
      * @throws ParseException
      */
     @PutMapping("update")
-    public ResponseEntity<MemberJPO> updateMember() throws ParseException {
+    public ResponseEntity<MemberEntity> updateMember() throws ParseException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Date date = format.parse("2011-12-03");
-        MemberJPO memberJPO = MemberJPO.builder()
+        MemberEntity memberJPO = MemberEntity.builder()
                 .id(1l)
                 .name("herojoon2")
                 .email("herojoon432@gmail.com")
@@ -65,7 +65,7 @@ public class MemberController {
                 .age(10)
                 .birthday(date)
                 .build();
-        MemberJPO updatedMemberJPO = memberService.updateMember(memberJPO);
+        MemberEntity updatedMemberJPO = memberService.updateMember(memberJPO);
         if (!ObjectUtils.isEmpty(updatedMemberJPO)) {
             return new ResponseEntity<>(updatedMemberJPO, HttpStatus.OK);
         } else {
@@ -79,8 +79,8 @@ public class MemberController {
      * @return
      */
     @GetMapping("list")
-    public ResponseEntity<List<MemberJPO>> getMembers() {
-        List<MemberJPO> memberJPOS = memberService.getMembers();
+    public ResponseEntity<List<MemberEntity>> getMembers() {
+        List<MemberEntity> memberJPOS = memberService.getMembers();
         return new ResponseEntity<>(memberJPOS, HttpStatus.OK);
     }
 
@@ -91,9 +91,9 @@ public class MemberController {
      * @return
      */
     @GetMapping("{id}")
-    public ResponseEntity<MemberJPO> getMember(
+    public ResponseEntity<MemberEntity> getMember(
             @PathVariable("id") Long id) {
-        MemberJPO memberJPO = memberService.getMember(id);
+        MemberEntity memberJPO = memberService.getMember(id);
         return new ResponseEntity<>(memberJPO, HttpStatus.OK);
     }
 

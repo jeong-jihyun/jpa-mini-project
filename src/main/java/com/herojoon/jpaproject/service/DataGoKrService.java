@@ -20,13 +20,16 @@ public class DataGoKrService {
     public void callAndProcessApi() throws IOException{
         // 배당공시정보조회
         stocInfoService.StocIssuInfo();
-        //
+        // 의무보호예수반환내역조회
         stocInfoService.LockUpRetuInfo();
 
         // 유상증자결정공시정보조회
         discInfoService.CapiIncrWithConsDiscInfo();
         // 배당공시정보조회
         discInfoService.DiviDiscInfo();
-
+        // 무상증자결정공시정보조회
+        discInfoService.BonuIssuDiscInfo();
+        // 유무상증자결정공시정보조회
+        discInfoService.CapiIncrWithConsBonuIssuDiscInfo();
     }
 }

@@ -1,6 +1,6 @@
 package com.herojoon.jpaproject.service;
 
-import com.herojoon.jpaproject.entity.MemberJPO;
+import com.herojoon.jpaproject.entity.MemberEntity;
 import com.herojoon.jpaproject.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +23,8 @@ public class MemberService {
      * @param memberJPO
      * @return
      */
-    public MemberJPO createMember(MemberJPO memberJPO) {
-        MemberJPO savedMemberJPO = memberRepository.save(memberJPO);  // JpaRepository에서 제공하는 save() 함수
+    public MemberEntity createMember(MemberEntity memberJPO) {
+        MemberEntity savedMemberJPO = memberRepository.save(memberJPO);  // JpaRepository에서 제공하는 save() 함수
         return savedMemberJPO;
     }
 
@@ -38,10 +38,10 @@ public class MemberService {
      * @param memberJPO
      * @return
      */
-    public MemberJPO updateMember(MemberJPO memberJPO) {
-        MemberJPO updatedMemberJPO = null;
+    public MemberEntity updateMember(MemberEntity memberJPO) {
+        MemberEntity updatedMemberJPO = null;
         try {
-            MemberJPO existMemberJPO = getMember(memberJPO.getId());
+            MemberEntity existMemberJPO = getMember(memberJPO.getId());
             if (!ObjectUtils.isEmpty(existMemberJPO)) {
                 updatedMemberJPO = memberRepository.save(memberJPO);  // JpaRepository에서 제공하는 save() 함수
             }
@@ -57,7 +57,7 @@ public class MemberService {
      * 
      * @return
      */
-    public List<MemberJPO> getMembers() {
+    public List<MemberEntity> getMembers() {
         return memberRepository.findAll();  // JpaRepository에서 제공하는 findAll() 함수
     }
 
@@ -67,7 +67,7 @@ public class MemberService {
      * @param id
      * @return
      */
-    public MemberJPO getMember(Long id) {
+    public MemberEntity getMember(Long id) {
         return memberRepository.getById(id);  // JpaRepository에서 제공하는 getById() 함수
     }
 

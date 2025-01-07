@@ -1,6 +1,6 @@
 package com.herojoon.jpaproject.service;
 
-import com.herojoon.jpaproject.entity.MemberJPO;
+import com.herojoon.jpaproject.entity.MemberEntity;
 import com.herojoon.jpaproject.repository.MemberRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ class MemberServiceTest {
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Date date = format.parse("2011-12-03");
-        MemberJPO memberJPO = MemberJPO.builder()
+        MemberEntity memberJPO = MemberEntity.builder()
                 .name("herojoon")
                 .email("herojoon432@gmail.com")
                 .nickname("heroble")

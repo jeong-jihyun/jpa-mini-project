@@ -13,7 +13,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "LOCK_UP_RETU_INFO")
-public class LockUpRetuInfoJPO {
+public class LockUpRetuInfoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

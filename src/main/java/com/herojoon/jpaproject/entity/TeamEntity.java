@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "TEAM")
 @ToString(of = {"id", "name"})
-public class TeamJPO {
+public class TeamEntity {
     @Id
     @GeneratedValue
     @Column(name = "team_id")
@@ -21,5 +21,5 @@ public class TeamJPO {
     private String name;
 
     @OneToMany(mappedBy = "team")
-    List<MemberJPO> members = new ArrayList<>();
+    List<MemberEntity> members = new ArrayList<>();
 }

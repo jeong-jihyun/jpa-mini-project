@@ -18,7 +18,7 @@ import java.util.Date;
 @Entity  // 객체와 테이블 매핑
 @Table(name = "MEMBER")  // index 없음 (기본 테이블 생성)
 @ToString(of = {"id", "name", "email", "nickname", "age", "birthday"})
-public class MemberJPO {
+public class MemberEntity {
     @Id  // Primary Key 지정
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")  // 컬럼 지정
@@ -41,7 +41,7 @@ public class MemberJPO {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
-    private TeamJPO team;
+    private TeamEntity team;
 
     @Column(name = "SEX")
     @Convert(converter = GenderConvert.class)

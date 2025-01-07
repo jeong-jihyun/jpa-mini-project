@@ -16,7 +16,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "STOC_ISSU_INFO")
-public class StocIssuInfoJPO {
+public class StocIssuInfoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
