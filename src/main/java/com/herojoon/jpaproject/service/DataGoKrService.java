@@ -31,5 +31,12 @@ public class DataGoKrService {
         discInfoService.BonuIssuDiscInfo();
         // 유무상증자결정공시정보조회
         discInfoService.CapiIncrWithConsBonuIssuDiscInfo();
+        // 주주총회소집공고공시정보조회
+        discInfoService.GeneMeetStocPublNotiDiscInfo();
+        // 자산양수도(기타)_풋백옵션공시정보조회
+        discInfoService.AsseTranPutBackOptiDiscInfo();
+
+        discInfoService.DishDiscInfo();
+
     }
 }

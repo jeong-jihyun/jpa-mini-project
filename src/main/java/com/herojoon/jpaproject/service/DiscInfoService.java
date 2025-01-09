@@ -1,13 +1,8 @@
 package com.herojoon.jpaproject.service;
 
-import com.herojoon.jpaproject.entity.BonuIssuDiscInfoEntity;
-import com.herojoon.jpaproject.entity.CapiIncrWithConsBonuIssuDiscInfoEntity;
-import com.herojoon.jpaproject.entity.CapiIncrWithConsDiscInfoEntity;
-import com.herojoon.jpaproject.entity.DiviDiscInfoEntity;
-import com.herojoon.jpaproject.repository.BonuIssuDiscInfoRepository;
-import com.herojoon.jpaproject.repository.CapiIncrWithConsBonuIssuDiscInfoRepository;
-import com.herojoon.jpaproject.repository.CapiIncrWithConsDiscInfoRepository;
-import com.herojoon.jpaproject.repository.DiviDiscInfoRepository;
+import com.herojoon.jpaproject.entity.*;
+
+import com.herojoon.jpaproject.repository.*;
 import com.herojoon.jpaproject.util.BatchUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,15 +14,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -40,7 +36,9 @@ public class DiscInfoService {
     private final DiviDiscInfoRepository diviDiscInfoRepository;
     private final BonuIssuDiscInfoRepository bonuIssuDiscInfoRepository;
     private final CapiIncrWithConsBonuIssuDiscInfoRepository capiIncrWithConsBonuIssuDiscInfoRepository;
-
+    private final GeneMeetStocPublNotiDiscInfoRepository geneMeetStocPublNotiDiscInfoRepository;
+    private final AsseTranPutBackOptiDiscInfoRepository asseTranPutBackOptiDiscInfoRepository;
+    private final DishDiscInfoRepository dishDiscInfoRepository;
 
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
@@ -172,6 +170,7 @@ public class DiscInfoService {
             }
         }
     }
+
 
     /**
      * 2.금융위원회_공시정보 (유상증자결정공시정보조회)
@@ -322,6 +321,7 @@ public class DiscInfoService {
         }
     }
 
+
     /**
      * 3.금융위원회_공시정보 (무상증자결정공시정보조회)
      *
@@ -418,8 +418,10 @@ public class DiscInfoService {
         }
     }
 
+
     /**
      * 4.금융위원회_공시정보 (유무상증자결정공시정보조회)
+     *
      * @throws IOException
      */
     public void CapiIncrWithConsBonuIssuDiscInfo() throws IOException {
@@ -468,6 +470,7 @@ public class DiscInfoService {
 
     /**
      * 4.금융위원회_공시정보 (유무상증자결정공시정보조회) - API 응답 처리
+     *
      * @param responseBody
      * @throws ParserConfigurationException
      * @throws SAXException
@@ -563,5 +566,245 @@ public class DiscInfoService {
                 log.info("Empty node found.");
             }
         }
+    }
+
+    /**
+     * 5.금융위원회_공시정보 (주주총회소집공고공시정보조회)
+     * 기준일자, 법인등록번호, 기업법인명을 통하여 시설자금액, 증자방식명, 정관근거내용등을 조회하는 유무상증자결정공시정보조회 기능
+     *
+     * @throws IOException IOException
+     */
+    public void GeneMeetStocPublNotiDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getGeneMeetStocPublNotiDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("GeneMeetStocPublNotiDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) geneMeetStocPublNotiDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.GeneMeetStocPublNotiDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 5.금융위원회_공시정보 (주주총회소집공고공시정보조회) - API 응답 처리
+     *
+     * @param responseBody responseBody
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException                 SAXException
+     * @throws IOException                  IOException
+     */
+    private void GeneMeetStocPublNotiDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                geneMeetStocPublNotiDiscInfoRepository.save(GeneMeetStocPublNotiDiscInfoEntity.builder()
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .corpNm(BatchUtil.getTagValue("corpNm", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 6.금융위원회_공시정보 (자산양수도(기타)_풋백옵션공시정보조회)
+     *
+     * @throws IOException IOException
+     */
+    public void AsseTranPutBackOptiDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getAsseTranPutBackOptiDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("AsseTranPutBackOptiDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) asseTranPutBackOptiDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.AsseTranPutBackOptiDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 6.금융위원회_공시정보 (자산양수도(기타)_풋백옵션공시정보조회) - API 응답 처리
+     *
+     * @param responseBody responseBody
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    private void AsseTranPutBackOptiDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                asseTranPutBackOptiDiscInfoRepository.save(AsseTranPutBackOptiDiscInfoEntity.builder()
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .enpCorpNm(BatchUtil.getTagValue("enpCorpNm", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .build());
+            }
+        }
+    }
+
+
+    public void DishDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getDishDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=json";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "application/json");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("DishDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    JSONParser jsonParser = new JSONParser();
+                    JSONObject jsonObject = (JSONObject) jsonParser.parse(response.toString());
+
+                    JSONObject res = (JSONObject) jsonObject.get("response");
+                    JSONObject body = (JSONObject) res.get("body");
+
+                    totalCount = Integer.parseInt(body.get("totalCount").toString());
+                }
+                if (totalCount == (int) dishDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.DishDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    private void DishDiscInfoProcessResponse(String responseBody) throws ParseException, IOException {
+        JSONParser jsonParser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) jsonParser.parse(responseBody);
+
+        JSONObject response = (JSONObject) jsonObject.get("response");
+        JSONObject body = (JSONObject) response.get("body");
+
+        JSONObject items = (JSONObject) body.get("items");
+        JSONArray item = (JSONArray) items.get("item");
+
+
+        for (Object json : item) {
+            JSONObject field = (JSONObject) json;
+
+            dishDiscInfoRepository.save(DishDiscInfoEntity.builder()
+                    .lastDshDt(field.get("lastDshDt").toString())
+                    .dshRsnCtt(field.get("dshRsnCtt").toString())
+                    .dshOccrBnkNm(field.get("dshOccrBnkNm").toString())
+                    .ivsRefCtt(field.get("ivsRefCtt").toString())
+                    .dshCtt(field.get("dshCtt").toString())
+                    .basDt(field.get("basDt").toString())
+                    .dshAmt(field.get("dshAmt").toString())
+                    .crno(field.get("crno").toString())
+                    .rptFileCtt(field.get("rptFileCtt").toString())
+                    .build());
+        }
+    }
+
+    private static String ByteArrayToString(byte[] bytes) {
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 }
