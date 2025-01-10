@@ -47,6 +47,7 @@ public class DiscInfoService {
     private final LitiEtcDiscInfoRepository litiEtcDiscInfoRepository;
     private final OffsSecuMarkListDiscInfoRepository offsSecuMarkListDiscInfoRepository;
     private final OffsSecuMarkDeliDiscInfoRepository offsSecuMarkDeliDiscInfoRepository;
+    private final CbRighIssuDiscInfoRepository cbRighIssuDiscInfoRepository;
 
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
@@ -1509,6 +1510,144 @@ public class DiscInfoService {
                         .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
                         .stckCtt(BatchUtil.getTagValue("stckCtt", element))
                         .trEdDt(BatchUtil.getTagValue("trEdDt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 16.금융위원회_공시정보 (전환사채권발행결정공시정보조회)
+     * @throws IOException IOException
+     */
+    public void CbRighIssuDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getCbRighIssuDiscInfo_V2?serviceKey="+ serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) cbRighIssuDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.CbRighIssuDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 16.금융위원회_공시정보 (전환사채권발행결정공시정보조회) - API 응답 처리
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException SAXException
+     * @throws IOException IOException
+     */
+    private void CbRighIssuDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                cbRighIssuDiscInfoRepository.save(CbRighIssuDiscInfoEntity.builder()
+                        .actnAudpnNm(BatchUtil.getTagValue("actnAudpnNm", element))
+                        .actnYear(BatchUtil.getTagValue("actnYear", element))
+                        .audpnAtndYn(BatchUtil.getTagValue("audpnAtndYn", element))
+                        .audtOpnnCtt(BatchUtil.getTagValue("audtOpnnCtt", element))
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .basExrt(BatchUtil.getTagValue("basExrt", element))
+                        .bodRsolDt(BatchUtil.getTagValue("bodRsolDt", element))
+                        .bondIssuAreaNm(BatchUtil.getTagValue("bondIssuAreaNm", element))
+                        .bondIssuDcnt(BatchUtil.getTagValue("bondIssuDcnt", element))
+                        .bondKindNm(BatchUtil.getTagValue("bondKindNm", element))
+                        .bzwrExorFnm(BatchUtil.getTagValue("bzwrExorFnm", element))
+                        .bzwrExorShrRat(BatchUtil.getTagValue("bzwrExorShrRat", element))
+                        .cbClmEdDt(BatchUtil.getTagValue("cbClmEdDt", element))
+                        .cbClmSttgDt(BatchUtil.getTagValue("cbClmSttgDt", element))
+                        .cbCnvrPrc(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("cbCnvrPrc", element))))
+                        .cbIssuMthCtt(BatchUtil.getTagValue("cbIssuMthCtt", element))
+                        .cbPricDecsMthCtt(BatchUtil.getTagValue("cbPricDecsMthCtt", element))
+                        .cbrSbscDt(BatchUtil.getTagValue("cbrSbscDt", element))
+                        .ceoFnm(BatchUtil.getTagValue("ceoFnm", element))
+                        .ceoShrRat(BatchUtil.getTagValue("ceoShrRat", element))
+                        .corRsnCtt(BatchUtil.getTagValue("corRsnCtt", element))
+                        .corpTastAmt(BatchUtil.getTagValue("corpTastAmt", element))
+                        .corpTdbtAmt(BatchUtil.getTagValue("corpTdbtAmt", element))
+                        .cpbdCnvrRto(BatchUtil.getTagValue("cpbdCnvrRto", element))
+                        .cpbdCnvrStckCnt(BatchUtil.getTagValue("cpbdCnvrStckCnt", element))
+                        .cpbdCnvrStckRto(BatchUtil.getTagValue("cpbdCnvrStckRto", element))
+                        .cpbdExprDt(BatchUtil.getTagValue("cpbdExprDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .crtmNpal(BatchUtil.getTagValue("crtmNpal", element))
+                        .cvprcAdjCtt(BatchUtil.getTagValue("cvprcAdjCtt", element))
+                        .dbetCnvrStckKindNm(BatchUtil.getTagValue("dbetCnvrStckKindNm", element))
+                        .enpSaleAmt(BatchUtil.getTagValue("enpSaleAmt", element))
+                        .etcCptlAmt(BatchUtil.getTagValue("etcCptlAmt", element))
+                        .exprInrt(BatchUtil.getTagValue("exprInrt", element))
+                        .fctfndAt(BatchUtil.getTagValue("fctfndAt", element))
+                        .fncoCptlAmt(BatchUtil.getTagValue("fncoCptlAmt", element))
+                        .fncoTcptAmt(BatchUtil.getTagValue("fncoTcptAmt", element))
+                        .fnpnCnt(BatchUtil.getTagValue("fnpnCnt", element))
+                        .grnInstNm(BatchUtil.getTagValue("grnInstNm", element))
+                        .hcfhPlanCtt(BatchUtil.getTagValue("hcfhPlanCtt", element))
+                        .imarTrCmteDclTrgtYn(BatchUtil.getTagValue("imarTrCmteDclTrgtYn", element))
+                        .intPayMthNm(BatchUtil.getTagValue("intPayMthNm", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .maxSthdFnm(BatchUtil.getTagValue("maxSthdFnm", element))
+                        .maxSthdRltNm(BatchUtil.getTagValue("maxSthdRltNm", element))
+                        .maxSthdShrRat(BatchUtil.getTagValue("maxSthdShrRat", element))
+                        .mgmCptAt(BatchUtil.getTagValue("mgmCptAt", element))
+                        .mracCtt(BatchUtil.getTagValue("mracCtt", element))
+                        .optnCtt(BatchUtil.getTagValue("optnCtt", element))
+                        .otcoScrtAcqAmt(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("otcoScrtAcqAmt", element))))
+                        .otdrAbncNopeCnt(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("otdrAbncNopeCnt", element))))
+                        .otdrAtndNopeCnt(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("otdrAtndNopeCnt", element))))
+                        .ovseCpbdTfcvlAmt(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("ovseCpbdTfcvlAmt", element))))
+                        .ovseIssuLnbTrCtt(BatchUtil.getTagValue("ovseIssuLnbTrCtt", element))
+                        .ovseLstgMrktNm(BatchUtil.getTagValue("ovseLstgMrktNm", element))
+                        .pamtRdptMthNm(BatchUtil.getTagValue("pamtRdptMthNm", element))
+                        .rgtExertCorpNm(BatchUtil.getTagValue("rgtExertCorpNm", element))
+                        .rprsSptdCmpyNm(BatchUtil.getTagValue("rprsSptdCmpyNm", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .sbmsExemRsnCtt(BatchUtil.getTagValue("sbmsExemRsnCtt", element))
+                        .scrtDclrptSbmsTrgtYn(BatchUtil.getTagValue("scrtDclrptSbmsTrgtYn", element))
+                        .shcpPymtDt(BatchUtil.getTagValue("shcpPymtDt", element))
+                        .spcfIssuTrprNm(BatchUtil.getTagValue("spcfIssuTrprNm", element))
+                        .srfcInrt(BatchUtil.getTagValue("srfcInrt", element))
+                        .stacTermMnthCnt(BatchUtil.getTagValue("stacTermMnthCnt", element))
+                        .tcpbFcvlAmt(BatchUtil.getTagValue("tcpbFcvlAmt", element))
+                        .tisuFcvlAmt(BatchUtil.getTagValue("tisuFcvlAmt", element))
                         .build());
             }
         }

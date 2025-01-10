@@ -53,5 +53,7 @@ public class DataGoKrService {
         discInfoService.OffsSecuMarkListDiscInfo();
         // 해외증권시장주권등상장폐지공시정보조회
         discInfoService.OffsSecuMarkDeliDiscInfo();
+        // 전환사채권발행결정공시정보조회
+        discInfoService.CbRighIssuDiscInfo();
     }
 }
