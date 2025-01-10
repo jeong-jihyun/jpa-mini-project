@@ -55,5 +55,9 @@ public class DataGoKrService {
         discInfoService.OffsSecuMarkDeliDiscInfo();
         // 전환사채권발행결정공시정보조회
         discInfoService.CbRighIssuDiscInfo();
+        // 신주인수권부사채권발행결정공시정보조회
+        discInfoService.BwRighIssuDiscInfo();
+        // 사외이사의선임·해임또는중도퇴임에관한신고조회
+        discInfoService.OutsDireHumaResoAffaRepo();
     }
 }

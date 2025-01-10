@@ -48,6 +48,8 @@ public class DiscInfoService {
     private final OffsSecuMarkListDiscInfoRepository offsSecuMarkListDiscInfoRepository;
     private final OffsSecuMarkDeliDiscInfoRepository offsSecuMarkDeliDiscInfoRepository;
     private final CbRighIssuDiscInfoRepository cbRighIssuDiscInfoRepository;
+    private final BwRighIssuDiscInfoRepository bwRighIssuDiscInfoRepository;
+    private final OutsDireHumaResoAffaRepoRepository outsDireHumaResoAffaRepoRepository;
 
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
@@ -1648,6 +1650,226 @@ public class DiscInfoService {
                         .stacTermMnthCnt(BatchUtil.getTagValue("stacTermMnthCnt", element))
                         .tcpbFcvlAmt(BatchUtil.getTagValue("tcpbFcvlAmt", element))
                         .tisuFcvlAmt(BatchUtil.getTagValue("tisuFcvlAmt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 17.금융위원회_공시정보 (신주인수권부사채권발행결정공시정보조회)
+     * @throws IOException IOException
+     */
+    public void BwRighIssuDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getBwRighIssuDiscInfo_V2?serviceKey="+ serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) bwRighIssuDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.BwRighIssuDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 17.금융위원회_공시정보 (신주인수권부사채권발행결정공시정보조회) - API 응답 처리
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException SAXException
+     * @throws IOException IOException
+     */
+    private void BwRighIssuDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                bwRighIssuDiscInfoRepository.save(BwRighIssuDiscInfoEntity.builder()
+                        .audpnAtndYn(BatchUtil.getTagValue("audpnAtndYn", element))
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .basExrt(Float.parseFloat(Objects.requireNonNull(BatchUtil.getTagValue("basExrt", element))))
+                        .bodRsolDt(BatchUtil.getTagValue("bodRsolDt", element))
+                        .bondIssuAreaNm(BatchUtil.getTagValue("bondIssuAreaNm", element))
+                        .bondIssuDcnt(BatchUtil.getTagValue("bondIssuDcnt", element))
+                        .bwIssuMthCtt(BatchUtil.getTagValue("bwIssuMthCtt", element))
+                        .bwrExertPrc(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("bwrExertPrc", element))))
+                        .bwrExertRto(BatchUtil.getTagValue("bwrExertRto", element))
+                        .bwrFcvlAmt(BatchUtil.getTagValue("bwrFcvlAmt", element))
+                        .bwrIssuDecsRmkCtt(BatchUtil.getTagValue("bwrIssuDecsRmkCtt", element))
+                        .bwrKindNm(BatchUtil.getTagValue("bwrKindNm", element))
+                        .bwrSbscDt(BatchUtil.getTagValue("bwrSbscDt", element))
+                        .bwrThryPric(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("bwrThryPric", element))))
+                        .bwrThryPricMdelNm(BatchUtil.getTagValue("bwrThryPricMdelNm", element))
+                        .corRsnCtt(BatchUtil.getTagValue("corRsnCtt", element))
+                        .cpbdExprDt(BatchUtil.getTagValue("cpbdExprDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .dsslCnptMaxSthdRltNm(BatchUtil.getTagValue("dsslCnptMaxSthdRltNm", element))
+                        .dsslSchDt(BatchUtil.getTagValue("dsslSchDt", element))
+                        .etcCptlAmt(BatchUtil.getTagValue("etcCptlAmt", element))
+                        .exertPricAdjCtt(BatchUtil.getTagValue("exertPricAdjCtt", element))
+                        .exertPricDecsMthNm(BatchUtil.getTagValue("exertPricDecsMthNm", element))
+                        .exprInrt(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("exprInrt", element))))
+                        .fctfndAt(BatchUtil.getTagValue("fctfndAt", element))
+                        .grnInstNm(BatchUtil.getTagValue("grnInstNm", element))
+                        .hcfhPlanCtt(BatchUtil.getTagValue("hcfhPlanCtt", element))
+                        .imarTrCmteDclTrgtYn(BatchUtil.getTagValue("imarTrCmteDclTrgtYn", element))
+                        .intPayMthNm(BatchUtil.getTagValue("intPayMthNm", element))
+                        .issuStckKindNm(BatchUtil.getTagValue("issuStckKindNm", element))
+                        .issuStckRto(BatchUtil.getTagValue("issuStckRto", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .maxSthdRltNm(BatchUtil.getTagValue("maxSthdRltNm", element))
+                        .mgmCptAt(BatchUtil.getTagValue("mgmCptAt", element))
+                        .mracCtt(BatchUtil.getTagValue("mracCtt", element))
+                        .nstUndtScrtDsslAmt(BatchUtil.getTagValue("nstUndtScrtDsslAmt", element))
+                        .optnCtt(BatchUtil.getTagValue("optnCtt", element))
+                        .otcoScrtAcqAmt(BatchUtil.getTagValue("otcoScrtAcqAmt", element))
+                        .otdrAbncNopeCnt(Long.parseLong(Objects.requireNonNull(BatchUtil.getTagValue("otdrAbncNopeCnt", element))))
+                        .otdrAtndNopeCnt(Long.parseLong(Objects.requireNonNull(BatchUtil.getTagValue("otdrAtndNopeCnt", element))))
+                        .ovseCpbdTfcvlAmt(BatchUtil.getTagValue("ovseCpbdTfcvlAmt", element))
+                        .ovseIssuLnbTrCtt(BatchUtil.getTagValue("ovseIssuLnbTrCtt", element))
+                        .ovseLstgMrktNm(BatchUtil.getTagValue("ovseLstgMrktNm", element))
+                        .pamtRdptMthNm(BatchUtil.getTagValue("pamtRdptMthNm", element))
+                        .prmrDsslCnptNm(BatchUtil.getTagValue("prmrDsslCnptNm", element))
+                        .prmrIssuStckCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("prmrIssuStckCnt", element))))
+                        .prmrScrtTdslAmt(BatchUtil.getTagValue("prmrScrtTdslAmt", element))
+                        .prmrSprtYn(BatchUtil.getTagValue("prmrSprtYn", element))
+                        .prmrValuCtt(BatchUtil.getTagValue("prmrValuCtt", element))
+                        .rgtExertEdDt(BatchUtil.getTagValue("rgtExertEdDt", element))
+                        .rgtExertSttgDt(BatchUtil.getTagValue("rgtExertSttgDt", element))
+                        .rprsSptdCmpyNm(BatchUtil.getTagValue("rprsSptdCmpyNm", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .sbmsExemRsnCtt(BatchUtil.getTagValue("sbmsExemRsnCtt", element))
+                        .scrtDclrptSbmsTrgtYn(BatchUtil.getTagValue("scrtDclrptSbmsTrgtYn", element))
+                        .shcpPymtDt(BatchUtil.getTagValue("shcpPymtDt", element))
+                        .shcpPymtMthNm(BatchUtil.getTagValue("shcpPymtMthNm", element))
+                        .spcfIssuTrprNm(BatchUtil.getTagValue("spcfIssuTrprNm", element))
+                        .srfcInrt(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("srfcInrt", element))))
+                        .tcpbFcvlAmt(BatchUtil.getTagValue("tcpbFcvlAmt", element))
+                        .tisuFcvlAmt(BatchUtil.getTagValue("tisuFcvlAmt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 33.금융위원회_공시정보 (사외이사의선임·해임또는중도퇴임에관한신고조회)
+     * @throws IOException IOException
+     */
+    public void OutsDireHumaResoAffaRepo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getOutsDireHumaResoAffaRepo_V2?serviceKey="+ serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) outsDireHumaResoAffaRepoRepository.count()) {
+                    break;
+                } else {
+                    this.OutsDireHumaResoAffaRepoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 33.금융위원회_공시정보 (사외이사의선임·해임또는중도퇴임에관한신고조회) - API 응답 처리
+     * @param responseBody
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    private void OutsDireHumaResoAffaRepoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                outsDireHumaResoAffaRepoRepository.save(OutsDireHumaResoAffaRepoEntity.builder()
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .lgscCorpYn(BatchUtil.getTagValue("lgscCorpYn", element))
+                        .otdrCrrCtt(BatchUtil.getTagValue("otdrCrrCtt", element))
+                        .otdrDsmsDt(BatchUtil.getTagValue("otdrDsmsDt", element))
+                        .otdrDsmsRsnCtt(BatchUtil.getTagValue("otdrDsmsRsnCtt", element))
+                        .otdrFnm(BatchUtil.getTagValue("otdrFnm", element))
+                        .otdrMngCtt(BatchUtil.getTagValue("otdrMngCtt", element))
+                        .otdrNewDsgnYn(BatchUtil.getTagValue("otdrNewDsgnYn", element))
+                        .otdrNowOcptNm(BatchUtil.getTagValue("otdrNowOcptNm", element))
+                        .otdrRto(BatchUtil.getTagValue("otdrRto", element))
+                        .otdrTrmSttgDt(BatchUtil.getTagValue("otdrTrmSttgDt", element))
+                        .otdrTrmXpryDt(BatchUtil.getTagValue("otdrTrmXpryDt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .tdrtCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("tdrtCnt", element))))
+                        .totdCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("totdCnt", element))))
                         .build());
             }
         }
