@@ -35,8 +35,17 @@ public class DataGoKrService {
         discInfoService.GeneMeetStocPublNotiDiscInfo();
         // 자산양수도(기타)_풋백옵션공시정보조회
         discInfoService.AsseTranPutBackOptiDiscInfo();
-
+        // 부도발생공시정보조회
         discInfoService.DishDiscInfo();
+        // 영업정지공시정보조회
+        discInfoService.BusiSuspDiscInfo();
 
+        // 회생절차개시신청공시정보조회
+        discInfoService.ReviProcDiscInfo();
+
+        // 해산사유발생공시정보조회
+        discInfoService.DissReasDiscInfo();
+        // 감사보고서공시정보조회
+        discInfoService.ReduCapiDiscInfo();
     }
 }

@@ -39,6 +39,10 @@ public class DiscInfoService {
     private final GeneMeetStocPublNotiDiscInfoRepository geneMeetStocPublNotiDiscInfoRepository;
     private final AsseTranPutBackOptiDiscInfoRepository asseTranPutBackOptiDiscInfoRepository;
     private final DishDiscInfoRepository dishDiscInfoRepository;
+    private final BusiSuspDiscInfoRepository busiSuspDiscInfoRepository;
+    private final ReviProcDiscInfoRepository reviProcDiscInfoRepository;
+    private final DissReasDiscInfoRepository dissReasDiscInfoRepository;
+    private final ReduCapiDiscInfoRepository reduCapiDiscInfoRepository;
 
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
@@ -165,8 +169,6 @@ public class DiscInfoService {
                         .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
                         .build()
                 );
-            } else {
-                log.info("Empty node found.");
             }
         }
     }
@@ -315,8 +317,6 @@ public class DiscInfoService {
                         .wt1yRdptSchYn(BatchUtil.getTagValue("wt1yRdptSchYn", element))
                         .build()
                 );
-            } else {
-                log.info("Empty node found.");
             }
         }
     }
@@ -412,8 +412,6 @@ public class DiscInfoService {
                         .stckParPrc(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("stckParPrc", element))))
                         .build()
                 );
-            } else {
-                log.info("Empty node found.");
             }
         }
     }
@@ -422,7 +420,7 @@ public class DiscInfoService {
     /**
      * 4.금융위원회_공시정보 (유무상증자결정공시정보조회)
      *
-     * @throws IOException
+     * @throws IOException IOException
      */
     public void CapiIncrWithConsBonuIssuDiscInfo() throws IOException {
         int pageNo = 1;
@@ -471,10 +469,10 @@ public class DiscInfoService {
     /**
      * 4.금융위원회_공시정보 (유무상증자결정공시정보조회) - API 응답 처리
      *
-     * @param responseBody
-     * @throws ParserConfigurationException
-     * @throws SAXException
-     * @throws IOException
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException                 SAXException
+     * @throws IOException                  IOException
      */
     private void CapiIncrWithConsBonuIssuDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -562,8 +560,6 @@ public class DiscInfoService {
                         .trdMdatFinInvsNm(BatchUtil.getTagValue("trdMdatFinInvsNm", element))
                         .wt1yRdptSchYn(BatchUtil.getTagValue("wt1yRdptSchYn", element))
                         .build());
-            } else {
-                log.info("Empty node found.");
             }
         }
     }
@@ -701,8 +697,8 @@ public class DiscInfoService {
      *
      * @param responseBody responseBody
      * @throws ParserConfigurationException ParserConfigurationException
-     * @throws SAXException
-     * @throws IOException
+     * @throws SAXException                 SAXException
+     * @throws IOException                  IOException
      */
     private void AsseTranPutBackOptiDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -725,7 +721,11 @@ public class DiscInfoService {
         }
     }
 
-
+    /**
+     * 7.금융위원회_공시정보 (부도발생공시정보조회)
+     *
+     * @throws IOException IOException
+     */
     public void DishDiscInfo() throws IOException {
         int pageNo = 1;
         int numOfRows = 2000;
@@ -776,6 +776,13 @@ public class DiscInfoService {
         } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
     }
 
+    /**
+     * 7.금융위원회_공시정보 (부도발생공시정보조회) - API 응답 처리
+     *
+     * @param responseBody
+     * @throws ParseException
+     * @throws IOException
+     */
     private void DishDiscInfoProcessResponse(String responseBody) throws ParseException, IOException {
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(responseBody);
@@ -786,10 +793,8 @@ public class DiscInfoService {
         JSONObject items = (JSONObject) body.get("items");
         JSONArray item = (JSONArray) items.get("item");
 
-
         for (Object json : item) {
             JSONObject field = (JSONObject) json;
-
             dishDiscInfoRepository.save(DishDiscInfoEntity.builder()
                     .lastDshDt(field.get("lastDshDt").toString())
                     .dshRsnCtt(field.get("dshRsnCtt").toString())
@@ -804,7 +809,369 @@ public class DiscInfoService {
         }
     }
 
-    private static String ByteArrayToString(byte[] bytes) {
-        return new String(bytes, StandardCharsets.UTF_8);
+    /**
+     * 8.금융위원회_공시정보 (영업정지공시정보조회)
+     *
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException                 SAXException
+     * @throws IOException                  IOException
+     */
+    private void BusiSuspDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                busiSuspDiscInfoRepository.save(BusiSuspDiscInfoEntity.builder()
+                        .audpnAtndYn(BatchUtil.getTagValue("audpnAtndYn", element))
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .bodRsolDt(BatchUtil.getTagValue("bodRsolDt", element))
+                        .bzopStopAmt(BatchUtil.getTagValue("bzopStopAmt", element))
+                        .bzopStopAmtRto(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("bzopStopAmtRto", element))))
+                        .bzopStopCtpnCtt(BatchUtil.getTagValue("bzopStopCtpnCtt", element))
+                        .bzopStopCtt(BatchUtil.getTagValue("bzopStopCtt", element))
+                        .bzopStopDt(BatchUtil.getTagValue("bzopStopDt", element))
+                        .bzopStopFildNm(BatchUtil.getTagValue("bzopStopFildNm", element))
+                        .bzopStopInfcCtt(BatchUtil.getTagValue("bzopStopInfcCtt", element))
+                        .bzopStopRsnCtt(BatchUtil.getTagValue("bzopStopRsnCtt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .lgscCorpYn(BatchUtil.getTagValue("lgscCorpYn", element))
+                        .ltstTsleAmt(BatchUtil.getTagValue("ltstTsleAmt", element))
+                        .otdrAbncNopeCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("otdrAbncNopeCnt", element))))
+                        .otdrAtndNopeCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("otdrAtndNopeCnt", element))))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .xchgLblPbanYn(BatchUtil.getTagValue("xchgLblPbanYn", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 8.금융위원회_공시정보 (영업정지공시정보조회)
+     *
+     * @throws IOException IOException
+     */
+    public void BusiSuspDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getBusiSuspDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) busiSuspDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.BusiSuspDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 9.금융위원회_공시정보 (회생절차개시신청공시정보조회)
+     *
+     * @throws IOException IOException
+     */
+    public void ReviProcDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getReviProcDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) reviProcDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.ReviProcDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 9.금융위원회_공시정보 (회생절차개시신청공시정보조회) - API 응답 처리
+     *
+     * @param responseBody
+     * @throws ParserConfigurationException
+     * @throws SAXException
+     * @throws IOException
+     */
+    private void ReviProcDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                reviProcDiscInfoRepository.save(ReviProcDiscInfoEntity.builder()
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .corvAplpnFnm(BatchUtil.getTagValue("corvAplpnFnm", element))
+                        .corvCtpnCtt(BatchUtil.getTagValue("corvCtpnCtt", element))
+                        .corvJurdCurtNm(BatchUtil.getTagValue("corvJurdCurtNm", element))
+                        .corvPropDt(BatchUtil.getTagValue("corvPropDt", element))
+                        .corvPropRsnCtt(BatchUtil.getTagValue("corvPropRsnCtt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 10.금융위원회_공시정보 (해산사유발생공시정보조회)
+     *
+     * @throws IOException IOException
+     */
+    public void DissReasDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getDissReasDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) dissReasDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.DissReasDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 10.금융위원회_공시정보 (해산사유발생공시정보조회) - API 응답 처리
+     *
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException                 SAXException
+     * @throws IOException                  IOException
+     */
+    private void DissReasDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                dissReasDiscInfoRepository.save(DissReasDiscInfoEntity.builder()
+                        .audtCmbrAtndYn(BatchUtil.getTagValue("audtCmbrAtndYn", element))
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .corpDsonCtt(BatchUtil.getTagValue("corpDsonCtt", element))
+                        .corpDsonRsnCtt(BatchUtil.getTagValue("corpDsonRsnCtt", element))
+                        .corpDsonRsnOccrDt(BatchUtil.getTagValue("corpDsonRsnOccrDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .otdrAbncNopeCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("otdrAbncNopeCnt", element))))
+                        .otdrAtndNopeCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("otdrAtndNopeCnt", element))))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 11.금융위원회_공시정보 (감자결정공시정보조회)
+     *
+     * @throws IOException IOException
+     */
+    public void ReduCapiDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getReduCapiDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) reduCapiDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.ReduCapiDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 11.금융위원회_공시정보 (감자결정공시정보조회) - API 응답 처리
+     *
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException                 SAXException
+     * @throws IOException                  IOException
+     */
+    private void ReduCapiDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                reduCapiDiscInfoRepository.save(ReduCapiDiscInfoEntity.builder()
+                        .afrcCptlAmt(BatchUtil.getTagValue("afrcCptlAmt", element))
+                        .afrcIssuOnskCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("afrcIssuOnskCnt", element))))
+                        .afrcIssuOtshCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("afrcIssuOtshCnt", element))))
+                        .arasBsisCtt(BatchUtil.getTagValue("arasBsisCtt", element))
+                        .audtCmbrAtndYn(BatchUtil.getTagValue("audtCmbrAtndYn", element))
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .bfrcCptlAmt(BatchUtil.getTagValue("bfrcCptlAmt", element))
+                        .bfrcIssuOnskCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("bfrcIssuOnskCnt", element))))
+                        .bfrcIssuOtshCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("bfrcIssuOtshCnt", element))))
+                        .bodRsolDt(BatchUtil.getTagValue("bodRsolDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .dsceSbmsEdDt(BatchUtil.getTagValue("dsceSbmsEdDt", element))
+                        .dsceSbmsSttgDt(BatchUtil.getTagValue("dsceSbmsSttgDt", element))
+                        .etcCtt(BatchUtil.getTagValue("etcCtt", element))
+                        .gmshSchDt(BatchUtil.getTagValue("gmshSchDt", element))
+                        .imarTrCmteDclTrgtYn(BatchUtil.getTagValue("imarTrCmteDclTrgtYn", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .nrfsHndvPlcNm(BatchUtil.getTagValue("nrfsHndvPlcNm", element))
+                        .nrfsHndvSchDt(BatchUtil.getTagValue("nrfsHndvSchDt", element))
+                        .nstLstgSchDt(BatchUtil.getTagValue("nstLstgSchDt", element))
+                        .onskRdcpRto(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("onskRdcpRto", element))))
+                        .orfsSbmsTermMnthCnt(BatchUtil.getTagValue("orfsSbmsTermMnthCnt", element))
+                        .otdrAbncNopeCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("otdrAbncNopeCnt", element))))
+                        .otdrAtndNopeCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("otdrAtndNopeCnt", element))))
+                        .otshRdcpRto(Double.parseDouble(Objects.requireNonNull(BatchUtil.getTagValue("otshRdcpRto", element))))
+                        .rdcpBasDt(BatchUtil.getTagValue("rdcpBasDt", element))
+                        .rdcpMthNm(BatchUtil.getTagValue("rdcpMthNm", element))
+                        .rdcpOnskCnt(BatchUtil.getTagValue("rdcpOnskCnt", element))
+                        .rdcpOtshCnt(BatchUtil.getTagValue("rdcpOtshCnt", element))
+                        .rdcpRsnCtt(BatchUtil.getTagValue("rdcpRsnCtt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .stckCtt(BatchUtil.getTagValue("stckCtt", element))
+                        .stckParPrc(BatchUtil.getTagValue("stckParPrc", element))
+                        .trStopSchTermMnthCnt(BatchUtil.getTagValue("trStopSchTermMnthCnt", element))
+                        .trsnmStopTermMnthCnt(BatchUtil.getTagValue("trsnmStopTermMnthCnt", element))
+                        .build());
+            }
+        }
     }
 }
