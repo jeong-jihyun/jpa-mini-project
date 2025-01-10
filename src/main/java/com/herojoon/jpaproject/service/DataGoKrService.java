@@ -51,5 +51,7 @@ public class DataGoKrService {
         discInfoService.LitiEtcDiscInfo();
         // 해외증권시장주권등상장공시정보조회
         discInfoService.OffsSecuMarkListDiscInfo();
+        // 해외증권시장주권등상장폐지공시정보조회
+        discInfoService.OffsSecuMarkDeliDiscInfo();
     }
 }

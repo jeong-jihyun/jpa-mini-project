@@ -46,6 +46,7 @@ public class DiscInfoService {
     private final ProcByCredBankDiscInfoRepository procByCredBankDiscInfoRepository;
     private final LitiEtcDiscInfoRepository litiEtcDiscInfoRepository;
     private final OffsSecuMarkListDiscInfoRepository offsSecuMarkListDiscInfoRepository;
+    private final OffsSecuMarkDeliDiscInfoRepository offsSecuMarkDeliDiscInfoRepository;
 
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
@@ -1423,6 +1424,91 @@ public class DiscInfoService {
                         .lwstAfrmDt(BatchUtil.getTagValue("lwstAfrmDt", element))
                         .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
                         .stckCtt(BatchUtil.getTagValue("stckCtt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 15.금융위원회_공시정보 (해외증권시장주권등상장폐지공시정보조회)
+     * @throws IOException IOException
+     */
+    public void OffsSecuMarkDeliDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getOffsSecuMarkDeliDiscInfo_V2?serviceKey="+ serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) offsSecuMarkDeliDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.OffsSecuMarkDeliDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 15.금융위원회_공시정보 (해외증권시장주권등상장폐지공시정보조회) - API 응답 처리
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException SAXException
+     * @throws IOException IOException
+     */
+    private void OffsSecuMarkDeliDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                offsSecuMarkDeliDiscInfoRepository.save(OffsSecuMarkDeliDiscInfoEntity.builder()
+                        .arasBsisCtt(BatchUtil.getTagValue("arasBsisCtt", element))
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .etcCtt(BatchUtil.getTagValue("etcCtt", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .lstgAbolHcfhScedCtt(BatchUtil.getTagValue("lstgAbolHcfhScedCtt", element))
+                        .lstgAbolOnskCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("lstgAbolOnskCnt", element))))
+                        .lstgAbolOtshCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("lstgAbolOtshCnt", element))))
+                        .lstgAbolRsnCtt(BatchUtil.getTagValue("lstgAbolRsnCtt", element))
+                        .lstgXchgDwplNtnlNm(BatchUtil.getTagValue("lstgXchgDwplNtnlNm", element))
+                        .lwstAfrmDt(BatchUtil.getTagValue("lwstAfrmDt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .stckCtt(BatchUtil.getTagValue("stckCtt", element))
+                        .trEdDt(BatchUtil.getTagValue("trEdDt", element))
                         .build());
             }
         }
