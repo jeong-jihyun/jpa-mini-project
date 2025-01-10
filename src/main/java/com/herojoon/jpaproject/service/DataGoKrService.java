@@ -39,13 +39,17 @@ public class DataGoKrService {
         discInfoService.DishDiscInfo();
         // 영업정지공시정보조회
         discInfoService.BusiSuspDiscInfo();
-
         // 회생절차개시신청공시정보조회
         discInfoService.ReviProcDiscInfo();
-
         // 해산사유발생공시정보조회
         discInfoService.DissReasDiscInfo();
         // 감사보고서공시정보조회
         discInfoService.ReduCapiDiscInfo();
+        // 채권은행등의관리절차개시공시정보조회
+        discInfoService.ProcByCredBankDiscInfo();
+        // 소송등의제기공시정보조회
+        discInfoService.LitiEtcDiscInfo();
+        // 해외증권시장주권등상장공시정보조회
+        discInfoService.OffsSecuMarkListDiscInfo();
     }
 }

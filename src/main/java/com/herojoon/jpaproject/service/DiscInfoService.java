@@ -43,6 +43,9 @@ public class DiscInfoService {
     private final ReviProcDiscInfoRepository reviProcDiscInfoRepository;
     private final DissReasDiscInfoRepository dissReasDiscInfoRepository;
     private final ReduCapiDiscInfoRepository reduCapiDiscInfoRepository;
+    private final ProcByCredBankDiscInfoRepository procByCredBankDiscInfoRepository;
+    private final LitiEtcDiscInfoRepository litiEtcDiscInfoRepository;
+    private final OffsSecuMarkListDiscInfoRepository offsSecuMarkListDiscInfoRepository;
 
     public static final String USER_AGENT = "Mozilla/5.0";
     @Value("${api.service.key}")
@@ -1170,6 +1173,256 @@ public class DiscInfoService {
                         .stckParPrc(BatchUtil.getTagValue("stckParPrc", element))
                         .trStopSchTermMnthCnt(BatchUtil.getTagValue("trStopSchTermMnthCnt", element))
                         .trsnmStopTermMnthCnt(BatchUtil.getTagValue("trsnmStopTermMnthCnt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 12.금융위원회_공시정보 (채권은행등의관리절차개시공시정보조회)
+     *
+     * @throws IOException IOException
+     */
+    public void ProcByCredBankDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getProcByCredBankDiscInfo_V2?serviceKey=" + serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) procByCredBankDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.ProcByCredBankDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 12.금융위원회_공시정보 (채권은행등의관리절차개시공시정보조회) - API 응답 처리
+     *
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException                 SAXException
+     * @throws IOException                  IOException
+     */
+    private void ProcByCredBankDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                procByCredBankDiscInfoRepository.save(ProcByCredBankDiscInfoEntity.builder()
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .bondMngInstNm(BatchUtil.getTagValue("bondMngInstNm", element))
+                        .crbkMngCtt(BatchUtil.getTagValue("crbkMngCtt", element))
+                        .crbkMngRsnCtt(BatchUtil.getTagValue("crbkMngRsnCtt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .lwstAfrmDt(BatchUtil.getTagValue("lwstAfrmDt", element))
+                        .mngOpngDecsDt(BatchUtil.getTagValue("mngOpngDecsDt", element))
+                        .mngTermMnthCnt(BatchUtil.getTagValue("mngTermMnthCnt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 13.금융위원회_공시정보 (소송등의제기공시정보조회)
+     * @throws IOException IOException
+     */
+    public void LitiEtcDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getLitiEtcDiscInfo_V2?serviceKey="+ serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("BusiSuspDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) litiEtcDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.LitiEtcDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 13.금융위원회_공시정보 (소송등의제기공시정보조회) - API 응답 처리
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException SAXException
+     * @throws IOException IOException
+     */
+    private void LitiEtcDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                litiEtcDiscInfoRepository.save(LitiEtcDiscInfoEntity.builder()
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .lwstAfrmDt(BatchUtil.getTagValue("lwstAfrmDt", element))
+                        .lwstAplpnNm(BatchUtil.getTagValue("lwstAplpnNm", element))
+                        .lwstClmCtt(BatchUtil.getTagValue("lwstClmCtt", element))
+                        .lwstIcdtNm(BatchUtil.getTagValue("lwstIcdtNm", element))
+                        .lwstJurdCurtNm(BatchUtil.getTagValue("lwstJurdCurtNm", element))
+                        .lwstRsltHcfhCtpnCtt(BatchUtil.getTagValue("lwstRsltHcfhCtpnCtt", element))
+                        .lwstSggsDt(BatchUtil.getTagValue("lwstSggsDt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .build());
+            }
+        }
+    }
+
+    /**
+     * 14.금융위원회_공시정보 (해외증권시장주권등상장공시정보조회)
+     * @throws IOException IOException
+     */
+    public void OffsSecuMarkListDiscInfo() throws IOException {
+        int pageNo = 1;
+        int numOfRows = 2000;
+        int totalCount = 0;
+        do {
+            String urlStr = serviceUrl + "/1160100/service/GetDiscInfoService_V2/getOffsSecuMarkListDiscInfo_V2?serviceKey="+ serviceKey + "&pageNo=" + pageNo + "&numOfRows=" + numOfRows + "&resultType=xml";
+            URL url = new URL(urlStr);
+
+            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", USER_AGENT);
+            con.setRequestProperty("CONTENT-TYPE", "text/xml");
+            con.setDoOutput(true);
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(5000);
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String inputline;
+                while ((inputline = in.readLine()) != null) {
+                    response.append(inputline.trim());
+                }
+                log.info("OffsSecuMarkListDiscInfo totalCount:{}, pageNo: {}, pageSize:{}", totalCount, pageNo, Math.ceil((double) totalCount / numOfRows));
+                if (pageNo == 1) {
+                    totalCount = BatchUtil.getTotalCount(response.toString());
+                }
+                if (totalCount == (int) offsSecuMarkListDiscInfoRepository.count()) {
+                    break;
+                } else {
+                    this.OffsSecuMarkListDiscInfoProcessResponse(response.toString());
+                }
+            } catch (IOException ex) {
+                log.error("Error occurred while calling API", ex);
+                throw ex;
+            } catch (ParserConfigurationException | SAXException e) {
+                throw new RuntimeException(e);
+            } finally {
+                con.disconnect();
+            }
+            pageNo++;
+        } while (pageNo <= Math.ceil((double) totalCount / numOfRows));
+    }
+
+    /**
+     * 14.금융위원회_공시정보 (해외증권시장주권등상장공시정보조회) - API 응답 처리
+     * @param responseBody String
+     * @throws ParserConfigurationException ParserConfigurationException
+     * @throws SAXException SAXException
+     * @throws IOException IOException
+     */
+    private void OffsSecuMarkListDiscInfoProcessResponse(String responseBody) throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(new InputSource(new StringReader(responseBody)));
+        document.getDocumentElement().normalize();
+        NodeList childList = document.getElementsByTagName("item");
+
+        for (int i = 0; i < childList.getLength(); i++) {
+            Node item = childList.item(i);
+            if (item.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) item;
+                offsSecuMarkListDiscInfoRepository.save(OffsSecuMarkListDiscInfoEntity.builder()
+                        .arasBsisCtt(BatchUtil.getTagValue("arasBsisCtt", element))
+                        .basDt(BatchUtil.getTagValue("basDt", element))
+                        .crno(BatchUtil.getTagValue("crno", element))
+                        .drIsinCdNm(BatchUtil.getTagValue("drIsinCdNm", element))
+                        .enpCorpNm(BatchUtil.getTagValue("enpCorpNm", element))
+                        .enpOvseXchgLstgDt(BatchUtil.getTagValue("enpOvseXchgLstgDt", element))
+                        .etcCtt(BatchUtil.getTagValue("etcCtt", element))
+                        .ivsRefCtt(BatchUtil.getTagValue("ivsRefCtt", element))
+                        .lstgOnskCnt(BatchUtil.getTagValue("lstgOnskCnt", element))
+                        .lstgOtshCnt(Integer.parseInt(Objects.requireNonNull(BatchUtil.getTagValue("lstgOtshCnt", element))))
+                        .lstgXchgDwplNtnlNm(BatchUtil.getTagValue("lstgXchgDwplNtnlNm", element))
+                        .lwstAfrmDt(BatchUtil.getTagValue("lwstAfrmDt", element))
+                        .rptFileCtt(BatchUtil.getTagValue("rptFileCtt", element))
+                        .stckCtt(BatchUtil.getTagValue("stckCtt", element))
                         .build());
             }
         }
